@@ -134,7 +134,6 @@ static void increment(VrEmuLcd* lcd)
     if (offset == 0x28) lcd->ddPtr = lcd->ddRam + 0x40;
     else if (offset == 0x68 || offset >= DDRAM_SIZE) lcd->ddPtr = lcd->ddRam;
   }
-  // My LCD doesn't wrap like this:
   else if (offset >= DDRAM_VISIBLE_SIZE)
   {
     lcd->ddPtr = lcd->ddRam;
@@ -163,7 +162,6 @@ static void decrement(VrEmuLcd* lcd)
     else if (offset == 0x39) lcd->ddPtr = lcd->ddRam  + 0x27;
   }
 
-// My LCD doesn't wrap like this:
   if (offset == -1)
   {
     lcd->ddPtr += DDRAM_VISIBLE_SIZE;
@@ -666,7 +664,7 @@ VR_LCD_EMU_DLLEXPORT int vrEmuLcdNumPixelsY(VrEmuLcd* lcd)
 }
 
 /*
- * Function:  charvrEmuLcdPixelState
+ * Function:  char vrEmuLcdPixelState
  * ----------------------------------------
  * returns: pixel state at the given location
  *
