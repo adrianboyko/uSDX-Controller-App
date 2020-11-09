@@ -11,6 +11,15 @@ const (
 	RotateEncoderCounterclockwise = byte(5)
 )
 
+var controlNames = []string{
+	"DUMMY",
+	"Left Button Click",
+	"Right Button Click",
+	"Encoder Button Click",
+	"Encoder Clockwise Turn",
+	"Encoder Counter Turn",
+}
+
 var port *serial.Port
 
 func InitControls(p *serial.Port) {
@@ -18,6 +27,7 @@ func InitControls(p *serial.Port) {
 }
 
 func Do(action byte) {
+	//fmt.Printf("%s\n", controlNames[action])
 	_, err := port.Write([]byte{action})
 	if err != nil {
 		panic(err)
