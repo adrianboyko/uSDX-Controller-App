@@ -9,6 +9,13 @@ import (
 	"github.com/tarm/serial"
 )
 
+type Updated struct{}
+
+type Settled struct {
+	line1 []byte
+	line2 []byte
+}
+
 // The microcontroller port pins used for each LCD signal
 const RS_PIN = 4
 const D7_PIN = 5
@@ -34,29 +41,24 @@ type AmbEmuLcd = *C.VrEmuLcd
 
 var lcd AmbEmuLcd = C.vrEmuLcdNew(C.int(16), C.int(2), C.EmuLcdRomA02)
 
-func Run(s *serial.Port, activity chan bool) {
+func Run(s *serial.Port, lcdEvents chan interface{}) {
 
 	buf := make([]byte, 128)
-	rendered := true
 
 	for {
 		bytesRead, _ := s.Read(buf)
 		if bytesRead == 0 {
 			state = WAITING_FOR_NIBBLE_1
-			if !rendered {
-				rendered = true
-				activity <- true // TRUE indicates that display has settled
-			}
+			lcdEvents <- Settled{[]byte{}, []byte{}}
 		} else {
 			for i := 0; i < bytesRead; i++ {
-				interpretNibbleByte(buf[i], activity)
+				interpretNibbleByte(buf[i], lcdEvents)
 			}
-			rendered = false
 		}
 	}
 }
 
-func interpretNibbleByte(nibbleByte byte, activity chan bool) {
+func interpretNibbleByte(nibbleByte byte, lcdEvents chan interface{}) {
 
 	nibbleRS := (nibbleByte >> RS_PIN) & 1
 	nibbleD7 := (nibbleByte >> D7_PIN) & 1
@@ -90,7 +92,7 @@ func interpretNibbleByte(nibbleByte byte, activity chan bool) {
 			// We are probably in sync so proceed normally.
 			sendFullByte(d7<<7 + d6<<6 + d5<<5 + d4<<4 + d3<<3 + d2<<2 + d1<<1 + d0<<0)
 			state = WAITING_FOR_NIBBLE_1
-			activity <- false // FALSE indicates LCD WIP
+			lcdEvents <- Updated{}
 		} else {
 			// We are definitely out of sync, so let's try to get back on track
 			d7 = nibbleD7
@@ -103,7 +105,7 @@ func interpretNibbleByte(nibbleByte byte, activity chan bool) {
 }
 
 func sendFullByte(b byte) {
-	// fmt.Printf("%01b %08b ", rs, b)
+	//fmt.Printf("%01b %08b ", rs, b)
 	switch rs {
 	case CMD_REGISTER:
 		C.vrEmuLcdSendCommand(lcd, C.byte(b))
@@ -112,6 +114,7 @@ func sendFullByte(b byte) {
 	default:
 		panic("Bad RS value")
 	}
+	//C.vrEmuLcdPrintDisplayRam(lcd)
 }
 
 func NumPixels() (width int, height int) {
