@@ -188,7 +188,7 @@ int vrEmuLcdNumPixelsX(VrEmuLcd *lcd);
 VR_LCD_EMU_DLLEXPORT
 int vrEmuLcdNumPixelsY(VrEmuLcd *lcd);
 
-/* Function:  charvrEmuLcdPixelState
+/* Function:  char vrEmuLcdPixelState
  * ----------------------------------------
  * returns: pixel state at the given location
  *
@@ -200,7 +200,17 @@ int vrEmuLcdNumPixelsY(VrEmuLcd *lcd);
 VR_LCD_EMU_DLLEXPORT
 char vrEmuLcdPixelState(VrEmuLcd *lcd, int x, int y);
 
+/* Function:  vrEmuLcdGetDisplayRam
+ * ----------------------------------------
+ * returns: A pointer to the display ram
+ */
+VR_LCD_EMU_DLLEXPORT
+void vrEmuLcdPrintDisplayRam(VrEmuLcd* lcd);
 
+/* Function:  vrEmuLcdGetDisplayRam
+ * ----------------------------------------
+ * A debug utility that prints the display ram to stdout.
+ */
 VR_LCD_EMU_DLLEXPORT
 void vrEmuLcdPrintDisplayRam(VrEmuLcd* lcd);
 

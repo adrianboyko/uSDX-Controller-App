@@ -7,6 +7,7 @@ import "C"
 import (
 	"fmt"
 	"github.com/tarm/serial"
+	"unsafe"
 )
 
 type Updated struct{}
@@ -41,18 +42,31 @@ type AmbEmuLcd = *C.VrEmuLcd
 
 var lcd AmbEmuLcd = C.vrEmuLcdNew(C.int(16), C.int(2), C.EmuLcdRomA02)
 
+func cBytesToByteSlice(src *C.byte, start int, len int) []byte {
+	return (*(*[1 << 30]byte)(unsafe.Pointer(src)))[start : start+len : start+len]
+}
+
 func Run(s *serial.Port, lcdEvents chan interface{}) {
 
 	buf := make([]byte, 128)
+	serialIsIdle := false
 
 	for {
 		bytesRead, _ := s.Read(buf)
 		if bytesRead == 0 {
 			state = WAITING_FOR_NIBBLE_1
-			lcdEvents <- Settled{[]byte{}, []byte{}}
+			if !serialIsIdle {
+				serialIsIdle = true
+				ddRam := C.vrEmuLcdGetDisplayRam(lcd)
+				// Next two lines assume 16x2 LCD and unscrolled LCD window.
+				line1 := cBytesToByteSlice(ddRam, 0x00, 16)
+				line2 := cBytesToByteSlice(ddRam, 0x40, 16)
+				lcdEvents <- Settled{line1, line2}
+			}
 		} else {
 			for i := 0; i < bytesRead; i++ {
 				interpretNibbleByte(buf[i], lcdEvents)
+				serialIsIdle = false
 			}
 		}
 	}

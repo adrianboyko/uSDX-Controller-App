@@ -681,7 +681,10 @@ VR_LCD_EMU_DLLEXPORT char vrEmuLcdPixelState(VrEmuLcd* lcd, int x, int y)
   return -1;
 }
 
-
+/* Function:  vrEmuLcdGetDisplayRam
+ * ----------------------------------------
+ * returns: A pointer to the display ram
+ */
 VR_LCD_EMU_DLLEXPORT void vrEmuLcdPrintDisplayRam(VrEmuLcd* lcd)
 {
   for (int i = 0; i < DDRAM_SIZE; i++)
@@ -694,6 +697,14 @@ VR_LCD_EMU_DLLEXPORT void vrEmuLcdPrintDisplayRam(VrEmuLcd* lcd)
   printf("\n");
 }
 
+/* Function:  vrEmuLcdGetDisplayRam
+ * ----------------------------------------
+ * returns: A pointer to the display ram
+ */
+VR_LCD_EMU_DLLEXPORT byte* const vrEmuLcdGetDisplayRam(VrEmuLcd* lcd)
+{
+  return lcd->ddRam;
+}
 
 
 // A00 (Japanese) character set.
