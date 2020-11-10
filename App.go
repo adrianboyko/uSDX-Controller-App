@@ -12,7 +12,7 @@ import (
 
 func main() {
 
-	config := &serial.Config{Name: "/dev/ttyACM0", Baud: 500000, ReadTimeout: 5 * time.Millisecond}
+	config := &serial.Config{Name: "/dev/ttyACM0", Baud: 500000, ReadTimeout: 10 * time.Millisecond}
 	port, err := serial.OpenPort(config)
 	if err != nil {
 		log.Fatal(err)
