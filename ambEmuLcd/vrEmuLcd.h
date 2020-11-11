@@ -205,7 +205,7 @@ char vrEmuLcdPixelState(VrEmuLcd *lcd, int x, int y);
  * returns: A pointer to the display ram
  */
 VR_LCD_EMU_DLLEXPORT
-void vrEmuLcdPrintDisplayRam(VrEmuLcd* lcd);
+byte* const vrEmuLcdGetDisplayRam(VrEmuLcd* lcd);
 
 /* Function:  vrEmuLcdGetDisplayRam
  * ----------------------------------------
