@@ -13,8 +13,8 @@ import (
 type Updated struct{}
 
 type Settled struct {
-	line1 []byte
-	line2 []byte
+	Line1 []byte
+	Line2 []byte
 }
 
 // The microcontroller port pins used for each LCD signal

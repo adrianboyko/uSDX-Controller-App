@@ -3,6 +3,7 @@ package main
 import "C"
 
 import (
+	"fmt"
 	"gioui.org/app"
 	"github.com/tarm/serial"
 	"log"
@@ -29,13 +30,18 @@ func main() {
 
 }
 
-func loop(w *app.Window, lcdActivityChan chan interface{}) error {
+func loop(w *app.Window, lcdEvents chan interface{}) error {
 	for {
 		select {
 
-		case <-lcdActivityChan:
+		case lcdEvt := <-lcdEvents:
 			w.Invalidate()
-			//Do(ClickRightButton)
+			switch e := lcdEvt.(type) {
+			case ambEmuLcd.Settled:
+				fmt.Printf("%v %s\n", e.Line1, e.Line1)
+				fmt.Printf("%v %s\n\n", e.Line2, e.Line2)
+			case ambEmuLcd.Updated:
+			}
 
 		case e := <-w.Events():
 			stop, evtErr := handleWindowEvent(e)
