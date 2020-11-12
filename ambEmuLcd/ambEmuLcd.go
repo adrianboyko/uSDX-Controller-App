@@ -7,14 +7,16 @@ import "C"
 import (
 	"fmt"
 	"github.com/tarm/serial"
+	"image"
 	"unsafe"
 )
 
 type Updated struct{}
 
 type Settled struct {
-	Line1 []byte
-	Line2 []byte
+	Line1Data []byte
+	Line2Data []byte
+	CursorPos image.Point
 }
 
 // The microcontroller port pins used for each LCD signal
@@ -46,6 +48,29 @@ func cBytesToByteSlice(src *C.byte, start int, len int) []byte {
 	return (*(*[1 << 30]byte)(unsafe.Pointer(src)))[start : start+len : start+len]
 }
 
+func createSettledEvent() *Settled {
+	ddRam := C.vrEmuLcdGetDisplayRam(lcd)
+	// Following code assume 2 row, 16 col, unscrolled LCD.
+	line1 := cBytesToByteSlice(ddRam, 0x00, 16)
+	line2 := cBytesToByteSlice(ddRam, 0x40, 16)
+
+	cCursor := C.vrEmuLcdGetCursorOffset(lcd)
+	goCursor := *(*int32)(unsafe.Pointer(&cCursor)) // is defined as int32_t in C code.
+	var cursorRow, cursorCol int
+	if 0 <= goCursor && goCursor < 0x40 {
+		cursorRow = 1
+		cursorCol = int(goCursor)
+	} else {
+		cursorRow = 2
+		cursorCol = int(goCursor) - 0x40
+	}
+	return &Settled{
+		Line1Data: line1,
+		Line2Data: line2,
+		CursorPos: image.Point{X: cursorCol, Y: cursorRow},
+	}
+}
+
 func Run(s *serial.Port, lcdEvents chan interface{}) {
 
 	buf := make([]byte, 128)
@@ -57,11 +82,7 @@ func Run(s *serial.Port, lcdEvents chan interface{}) {
 			state = WAITING_FOR_NIBBLE_1
 			if !serialIsIdle {
 				serialIsIdle = true
-				ddRam := C.vrEmuLcdGetDisplayRam(lcd)
-				// Next two lines assume 16x2 LCD and unscrolled LCD window.
-				line1 := cBytesToByteSlice(ddRam, 0x00, 16)
-				line2 := cBytesToByteSlice(ddRam, 0x40, 16)
-				lcdEvents <- Settled{line1, line2}
+				lcdEvents <- createSettledEvent()
 			}
 		} else {
 			for i := 0; i < bytesRead; i++ {

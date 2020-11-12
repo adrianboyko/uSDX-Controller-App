@@ -37,9 +37,10 @@ func loop(w *app.Window, lcdEvents chan interface{}) error {
 		case lcdEvt := <-lcdEvents:
 			w.Invalidate()
 			switch e := lcdEvt.(type) {
-			case ambEmuLcd.Settled:
-				fmt.Printf("%v %s\n", e.Line1, e.Line1)
-				fmt.Printf("%v %s\n\n", e.Line2, e.Line2)
+			case *ambEmuLcd.Settled:
+				fmt.Printf("%v %s\n", e.Line1Data, e.Line1Data)
+				fmt.Printf("%v %s\n", e.Line2Data, e.Line2Data)
+				fmt.Printf("%d\n\n", e.CursorPos)
 			case ambEmuLcd.Updated:
 			}
 

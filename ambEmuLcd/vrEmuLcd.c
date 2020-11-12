@@ -706,6 +706,13 @@ VR_LCD_EMU_DLLEXPORT byte* const vrEmuLcdGetDisplayRam(VrEmuLcd* lcd)
   return lcd->ddRam;
 }
 
+/* Function:  vrEmuLcdGetCursorOffset
+ * ----------------------------------------
+ * returns: offset of cursor into the ddRam, as an integer.
+ */
+VR_LCD_EMU_DLLEXPORT int32_t vrEmuLcdGetCursorOffset(VrEmuLcd* lcd) {
+    return lcd->ddPtr - lcd->ddRam;
+}
 
 // A00 (Japanese) character set.
 // skip first 16 characters reserved for CGRAM

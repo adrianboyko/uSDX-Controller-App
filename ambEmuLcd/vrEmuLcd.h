@@ -24,6 +24,8 @@
 #undef byte
 typedef unsigned char byte;
 
+#include <stdint.h>
+
 /* PRIVATE DATA STRUCTURE
  * ---------------------------------------- */
 struct vrEmuLcd_s;
@@ -206,6 +208,14 @@ char vrEmuLcdPixelState(VrEmuLcd *lcd, int x, int y);
  */
 VR_LCD_EMU_DLLEXPORT
 byte* const vrEmuLcdGetDisplayRam(VrEmuLcd* lcd);
+
+/* Function:  vrEmuLcdGetCursorOffset
+ * ----------------------------------------
+ * returns: offset of cursor into the ddRam, as an integer.
+ */
+VR_LCD_EMU_DLLEXPORT
+int32_t vrEmuLcdGetCursorOffset(VrEmuLcd* lcd);
+
 
 /* Function:  vrEmuLcdGetDisplayRam
  * ----------------------------------------
