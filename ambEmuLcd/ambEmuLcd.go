@@ -6,10 +6,12 @@ import "C"
 
 import (
 	"fmt"
-	"github.com/tarm/serial"
 	"image"
 	"unsafe"
 )
+
+type PoweredOn struct{}
+type PoweredOff struct{}
 
 type Updated struct{}
 
@@ -71,29 +73,12 @@ func createSettledEvent() *Settled {
 	}
 }
 
-func Run(s *serial.Port, lcdEvents chan interface{}) {
-
-	buf := make([]byte, 128)
-	serialIsIdle := false
-
-	for {
-		bytesRead, _ := s.Read(buf)
-		if bytesRead == 0 {
-			state = WAITING_FOR_NIBBLE_1
-			if !serialIsIdle {
-				serialIsIdle = true
-				lcdEvents <- createSettledEvent()
-			}
-		} else {
-			for i := 0; i < bytesRead; i++ {
-				interpretNibbleByte(buf[i], lcdEvents)
-				serialIsIdle = false
-			}
-		}
-	}
+func NoteSerialIsIdle(lcdEvents chan interface{}) {
+	state = WAITING_FOR_NIBBLE_1
+	lcdEvents <- createSettledEvent()
 }
 
-func interpretNibbleByte(nibbleByte byte, lcdEvents chan interface{}) {
+func InterpretByte(nibbleByte byte, lcdEvents chan interface{}) {
 
 	nibbleRS := (nibbleByte >> RS_PIN) & 1
 	nibbleD7 := (nibbleByte >> D7_PIN) & 1
@@ -125,9 +110,8 @@ func interpretNibbleByte(nibbleByte byte, lcdEvents chan interface{}) {
 
 		if rs == nibbleRS { // This checks that we're in correct nibble sync
 			// We are probably in sync so proceed normally.
-			sendFullByte(d7<<7 + d6<<6 + d5<<5 + d4<<4 + d3<<3 + d2<<2 + d1<<1 + d0<<0)
+			interpretFullByte(d7<<7+d6<<6+d5<<5+d4<<4+d3<<3+d2<<2+d1<<1+d0<<0, lcdEvents)
 			state = WAITING_FOR_NIBBLE_1
-			lcdEvents <- Updated{}
 		} else {
 			// We are definitely out of sync, so let's try to get back on track
 			d7 = nibbleD7
@@ -139,8 +123,22 @@ func interpretNibbleByte(nibbleByte byte, lcdEvents chan interface{}) {
 	}
 }
 
-func sendFullByte(b byte) {
+func interpretFullByte(b byte, lcdEvents chan interface{}) {
+	if rs == 0 && b == 255 { // Power UP signal is not a valid LCD command.
+		lcdEvents <- PoweredOn{}
+	} else if rs == 0 && b == 254 { // Power DOWN signal is not a valid LCD command.
+		lcdEvents <- PoweredOff{}
+		C.vrEmuLcdSendCommand(lcd, 0b00000001) // Clear Display
+		C.vrEmuLcdSendCommand(lcd, 0b00001100) // Cursor Off
+	} else {
+		sendFullByteToEmulator(b)
+		lcdEvents <- Updated{}
+	}
+}
+
+func sendFullByteToEmulator(b byte) {
 	//fmt.Printf("%01b %08b ", rs, b)
+
 	switch rs {
 	case CMD_REGISTER:
 		C.vrEmuLcdSendCommand(lcd, C.byte(b))

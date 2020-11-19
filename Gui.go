@@ -17,6 +17,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"uSDX/Controls"
 	"uSDX/ambEmuLcd"
 )
 
@@ -32,7 +33,7 @@ var (
 	wPixels          = float32(xPixels) * rendPixSize
 	hPixels          = float32(yPixels) * rendPixSize
 	dm               = float32(6)                                     // display margin
-	displaySize      = image.Pt(int(wPixels+2*dm), int(hPixels+2*dm)) // Rendered displaySize of display
+	displaySize      = image.Pt(int(wPixels+2*dm), int(hPixels+2*dm)) // Rendered size of display
 )
 
 var (
@@ -57,6 +58,8 @@ func gui(loop func(*app.Window, chan interface{}) error, lcdEvents chan interfac
 	os.Exit(0)
 }
 
+var scrollCount uint32 = 0
+
 func handleWindowEvent(iEvt event.Event) (stop bool, err error) {
 	var ops op.Ops
 	stop = false
@@ -66,28 +69,31 @@ func handleWindowEvent(iEvt event.Event) (stop bool, err error) {
 		switch e := iEvt.(type) {
 		case pointer.Event:
 			if e.Type == pointer.Scroll {
-				if e.Scroll.Y > 0 {
-					Do(RotateEncoderCounterclockwise)
-				} else {
-					Do(RotateEncoderClockwise)
+				scrollCount += 1
+				if scrollCount%2 == 0 {
+					if e.Scroll.Y > 0 {
+						Controls.RotateEncoderCounterclockwise()
+					} else {
+						Controls.RotateEncoderClockwise()
+					}
 				}
 			}
 		}
 	}
 	for leftButton.Clicked() {
-		Do(ClickLeftButton)
+		Controls.ClickLeftButton()
 	}
 	for midButton.Clicked() {
-		Do(ClickEncoderButton)
+		Controls.ClickEncoderButton()
 	}
 	for rightButton.Clicked() {
-		Do(ClickRightButton)
+		Controls.ClickRightButton()
 	}
 	for ccwButton.Clicked() {
-		Do(RotateEncoderCounterclockwise)
+		Controls.RotateEncoderCounterclockwise()
 	}
 	for cwButton.Clicked() {
-		Do(RotateEncoderClockwise)
+		Controls.RotateEncoderClockwise()
 	}
 
 	switch evt := iEvt.(type) {
@@ -108,9 +114,37 @@ func handleWindowEvent(iEvt event.Event) (stop bool, err error) {
 			layout.Flexed(0.5, func(gtx C) D { return layoutButtons(gtx) }),
 		)
 		evt.Frame(gtx.Ops)
+
+	case pointer.Event:
+		handlePointerEvent(evt)
 	}
 
 	return
+}
+
+func guiPtToLcdCharPt(guiPt f32.Point) (onLcd bool, lcdCharPt image.Point) {
+	lcdPixPt := image.Point{X: int((guiPt.X - dm) / rendPixSize), Y: int(((guiPt.Y - dm) / rendPixSize))}
+	lcdCharPt = image.Point{X: lcdPixPt.X / 6, Y: int(lcdPixPt.Y / 9)}
+	if lcdCharPt.X <= 15 && lcdCharPt.Y <= 1 {
+		onLcd = true
+	} else {
+		onLcd = false
+	}
+	return
+}
+
+func handlePointerEvent(evt pointer.Event) {
+	switch evt.Type {
+	case pointer.Press:
+		if overLcd, charPt := guiPtToLcdCharPt(evt.Position); overLcd {
+			if charPt.Y == 1 && charPt.X >= 1 && charPt.X <= 9 {
+				Controls.SkipToFreqDigit(charPt.X)
+			}
+			if charPt.Y == 1 && charPt.X >= 11 && charPt.X <= 13 {
+				Controls.ClickRightButton()
+			}
+		}
+	}
 }
 
 func layoutButtons(gtx C) D {
