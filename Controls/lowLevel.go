@@ -9,6 +9,9 @@ const (
 	clickEncoderButton            = byte(3)
 	rotateEncoderClockwise        = byte(4)
 	rotateEncoderCounterclockwise = byte(5)
+	startPushToTalk               = byte(6)
+	endPushToTalk                 = byte(7)
+	resetTheUsdx                  = byte(8)
 )
 
 var controlNames = []string{
@@ -18,6 +21,9 @@ var controlNames = []string{
 	"Encoder Button Click",
 	"Encoder Clockwise Turn",
 	"Encoder Counter Turn",
+	"Start Push to Talk",
+	"End Push to Talk",
+	"Reset the uSDX",
 }
 
 var port *serial.Port
@@ -34,12 +40,14 @@ func InitLowLevelControls(p *serial.Port) {
 	port = p
 }
 
+func StartPushToTalk()               { hardwareAction(startPushToTalk) }
+func EndPushToTalk()                 { hardwareAction(endPushToTalk) }
 func ClickLeftButton()               { hardwareAction(clickLeftButton) }
 func ClickRightButton()              { hardwareAction(clickRightButton) }
 func ClickEncoderButton()            { hardwareAction(clickEncoderButton) }
+func ResetTheUsdx()                  { hardwareAction(resetTheUsdx) }
 func RotateEncoderClockwise()        { hardwareAction(rotateEncoderClockwise) }
 func RotateEncoderCounterclockwise() { hardwareAction(rotateEncoderCounterclockwise) }
-
 func RotateEncoder(dir int) {
 	if dir > 0 {
 		RotateEncoderClockwise()

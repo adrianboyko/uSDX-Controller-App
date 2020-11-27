@@ -26,12 +26,14 @@ func main() {
 	}
 
 	lcdEvents := make(chan interface{}, 100)
-	go ProcessSerialFromUsdx(uSdxPort, lcdEvents)
-
-	Controls.InitLowLevelControls(uSdxPort)
-	go Controls.ProcessSerialFromCat(catPort)
 
 	go gui(loop, lcdEvents)
+
+	Controls.InitLowLevelControls(uSdxPort)
+	Controls.ResetTheUsdx()
+
+	go ProcessSerialFromUsdx(uSdxPort, lcdEvents)
+	go Controls.ProcessSerialFromCat(catPort)
 
 	app.Main()
 

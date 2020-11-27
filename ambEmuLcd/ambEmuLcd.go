@@ -78,6 +78,10 @@ func NoteSerialIsIdle(lcdEvents chan interface{}) {
 	lcdEvents <- createSettledEvent()
 }
 
+// NOTE: The following ignores the fact that communication starts in 8bit data mode.
+// This works, but only by doing error-recovery from situations that are not actually errors.
+// A more sophisticated implementation would take the 8bit startup into account instead of
+// assuming only 4bit mode is used.
 func InterpretByte(nibbleByte byte, lcdEvents chan interface{}) {
 
 	nibbleRS := (nibbleByte >> RS_PIN) & 1
@@ -108,12 +112,22 @@ func InterpretByte(nibbleByte byte, lcdEvents chan interface{}) {
 		d1 := nibbleD5
 		d0 := nibbleD4
 
-		if rs == nibbleRS { // This checks that we're in correct nibble sync
+		fullByte := d7<<7 + d6<<6 + d5<<5 + d4<<4 + d3<<3 + d2<<2 + d1<<1 + d0<<0
+
+		// If RS values differ for two nibbles, it means that we're out of sync.
+		rsMismatchErr := rs != nibbleRS
+
+		// If RS is zero then we have a command, but 00000000 is not a vaild command.
+		noSuchCommandErr := rs == 0 && fullByte == 0
+
+		if !rsMismatchErr && !noSuchCommandErr {
 			// We are probably in sync so proceed normally.
-			interpretFullByte(d7<<7+d6<<6+d5<<5+d4<<4+d3<<3+d2<<2+d1<<1+d0<<0, lcdEvents)
+			interpretFullByte(fullByte, lcdEvents)
 			state = WAITING_FOR_NIBBLE_1
 		} else {
 			// We are definitely out of sync, so let's try to get back on track
+			//fmt.Printf("%01b %08b ERROR!\n", rs, fullByte)
+			rs = nibbleRS
 			d7 = nibbleD7
 			d6 = nibbleD6
 			d5 = nibbleD5
@@ -137,7 +151,7 @@ func interpretFullByte(b byte, lcdEvents chan interface{}) {
 }
 
 func sendFullByteToEmulator(b byte) {
-	//fmt.Printf("%01b %08b ", rs, b)
+	//fmt.Printf("%01b %08b\n", rs, b)
 
 	switch rs {
 	case CMD_REGISTER:

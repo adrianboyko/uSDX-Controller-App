@@ -169,12 +169,12 @@ func readOperatingMode() {
 }
 
 func setReceiveMode() {
-	// TODO
-	respond("RX0;") // REVIEW: Why does a set command have a response?
+	EndPushToTalk()
+	//respond("RX0;") // REVIEW: Why does a set command have a response?
 }
 
 func setTransmitMode(p1 byte) {
-	// TODO
+	StartPushToTalk()
 }
 
 func readTranceiverStatus() {
