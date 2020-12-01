@@ -7,8 +7,8 @@ import (
 	"github.com/tarm/serial"
 	"log"
 	"time"
-	"uSDX/Controls"
 	"uSDX/ambEmuLcd"
+	"uSDX/controls"
 )
 
 func main() {
@@ -29,11 +29,11 @@ func main() {
 
 	go gui(loop, lcdEvents)
 
-	Controls.InitLowLevelControls(uSdxPort)
-	Controls.ResetTheUsdx()
+	controls.InitLowLevelControls(uSdxPort)
+	controls.ResetTheUsdx()
 
-	go ProcessSerialFromUsdx(uSdxPort, lcdEvents)
-	go Controls.ProcessSerialFromCat(catPort)
+	go ambEmuLcd.ProcessSerialLcdData(uSdxPort, lcdEvents)
+	go controls.ProcessSerialFromCat(catPort)
 
 	app.Main()
 
@@ -47,11 +47,11 @@ func loop(w *app.Window, lcdEvents chan interface{}) error {
 			w.Invalidate()
 			switch e := lcdEvt.(type) {
 			case *ambEmuLcd.Settled:
-				Controls.HandleSettledEvent(e)
+				controls.HandleSettledEvent(e)
 			case ambEmuLcd.Updated:
 				// Nothing yet. Might not use.
 			case ambEmuLcd.PoweredOn:
-				Controls.InitHighLevelControls()
+				controls.InitHighLevelControls()
 			case ambEmuLcd.PoweredOff:
 				// Nothing yet. Might not use.
 			}

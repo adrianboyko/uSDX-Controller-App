@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/tarm/serial"
 	"image"
 	"unsafe"
 )
@@ -73,16 +74,11 @@ func createSettledEvent() *Settled {
 	}
 }
 
-func NoteSerialIsIdle(lcdEvents chan interface{}) {
-	state = WAITING_FOR_NIBBLE_1
-	lcdEvents <- createSettledEvent()
-}
-
 // NOTE: The following ignores the fact that communication starts in 8bit data mode.
 // This works, but only by doing error-recovery from situations that are not actually errors.
 // A more sophisticated implementation would take the 8bit startup into account instead of
 // assuming only 4bit mode is used.
-func InterpretByte(nibbleByte byte, lcdEvents chan interface{}) {
+func interpretByteFromSerial(nibbleByte byte, lcdEvents chan interface{}) {
 
 	nibbleRS := (nibbleByte >> RS_PIN) & 1
 	nibbleD7 := (nibbleByte >> D7_PIN) & 1
@@ -198,5 +194,27 @@ func PrintPixels() {
 			}
 		}
 		fmt.Printf("\n")
+	}
+}
+
+func ProcessSerialLcdData(uSdx *serial.Port, lcdEvents chan interface{}) {
+
+	buf := make([]byte, 128)
+	serialIsIdle := false
+
+	for {
+		bytesRead, _ := uSdx.Read(buf)
+		if bytesRead == 0 {
+			if !serialIsIdle {
+				serialIsIdle = true
+				state = WAITING_FOR_NIBBLE_1
+				lcdEvents <- createSettledEvent()
+			}
+		} else {
+			for i := 0; i < bytesRead; i++ {
+				interpretByteFromSerial(buf[i], lcdEvents)
+			}
+			serialIsIdle = false
+		}
 	}
 }

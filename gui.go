@@ -17,8 +17,8 @@ import (
 	"image/color"
 	"log"
 	"os"
-	"uSDX/Controls"
 	"uSDX/ambEmuLcd"
+	"uSDX/controls"
 )
 
 type (
@@ -72,28 +72,28 @@ func handleWindowEvent(iEvt event.Event) (stop bool, err error) {
 				scrollCount += 1
 				if scrollCount%2 == 0 {
 					if e.Scroll.Y > 0 {
-						Controls.RotateEncoderCounterclockwise()
+						controls.RotateEncoderCounterclockwise()
 					} else {
-						Controls.RotateEncoderClockwise()
+						controls.RotateEncoderClockwise()
 					}
 				}
 			}
 		}
 	}
 	for leftButton.Clicked() {
-		Controls.ClickLeftButton()
+		controls.ClickLeftButton()
 	}
 	for midButton.Clicked() {
-		Controls.ClickEncoderButton()
+		controls.ClickEncoderButton()
 	}
 	for rightButton.Clicked() {
-		Controls.ClickRightButton()
+		controls.ClickRightButton()
 	}
 	for ccwButton.Clicked() {
-		Controls.RotateEncoderCounterclockwise()
+		controls.RotateEncoderCounterclockwise()
 	}
 	for cwButton.Clicked() {
-		Controls.RotateEncoderClockwise()
+		controls.RotateEncoderClockwise()
 	}
 
 	switch evt := iEvt.(type) {
@@ -138,10 +138,10 @@ func handlePointerEvent(evt pointer.Event) {
 	case pointer.Press:
 		if overLcd, charPt := guiPtToLcdCharPt(evt.Position); overLcd {
 			if charPt.Y == 1 && charPt.X >= 1 && charPt.X <= 9 {
-				Controls.SkipToFreqDigit(charPt.X)
+				controls.SkipToFreqDigit(charPt.X)
 			}
 			if charPt.Y == 1 && charPt.X >= 11 && charPt.X <= 13 {
-				Controls.ClickRightButton()
+				controls.ClickRightButton()
 			}
 		}
 	}
