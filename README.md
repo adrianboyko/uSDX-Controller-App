@@ -1,3 +1,5 @@
+<img src="https://github.com/adrianboyko/uSDX-Controller-App/blob/main/uSDX%20Controller.png">
+
 # uSDX-Controller-App
 
 My uSDX Control system is made up of three parts:
