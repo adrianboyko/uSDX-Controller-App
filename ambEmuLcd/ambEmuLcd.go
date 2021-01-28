@@ -23,11 +23,11 @@ type Settled struct {
 }
 
 // The microcontroller port pins used for each LCD signal
-const RS_PIN = 4
-const D7_PIN = 5
-const D6_PIN = 2
-const D5_PIN = 1
-const D4_PIN = 0
+const RS_BIT = 5
+const D7_BIT = 3
+const D6_BIT = 2
+const D5_BIT = 1
+const D4_BIT = 0
 
 const (
 	WAITING_FOR_NIBBLE_1 = iota
@@ -80,11 +80,11 @@ func createSettledEvent() *Settled {
 // assuming only 4bit mode is used.
 func interpretByteFromSerial(nibbleByte byte, lcdEvents chan interface{}) {
 
-	nibbleRS := (nibbleByte >> RS_PIN) & 1
-	nibbleD7 := (nibbleByte >> D7_PIN) & 1
-	nibbleD6 := (nibbleByte >> D6_PIN) & 1
-	nibbleD5 := (nibbleByte >> D5_PIN) & 1
-	nibbleD4 := (nibbleByte >> D4_PIN) & 1
+	nibbleRS := (nibbleByte >> RS_BIT) & 1
+	nibbleD7 := (nibbleByte >> D7_BIT) & 1
+	nibbleD6 := (nibbleByte >> D6_BIT) & 1
+	nibbleD5 := (nibbleByte >> D5_BIT) & 1
+	nibbleD4 := (nibbleByte >> D4_BIT) & 1
 
 	switch state {
 
