@@ -22,7 +22,7 @@ func main() {
 	catConfig := &serial.Config{Name: "/dev/ttyS21", Baud: 9600}
 	catPort, catErr := serial.OpenPort(catConfig)
 	if catErr != nil {
-		log.Fatal(catErr)
+		log.Fatal(catErr) // Comment out if you're not going to do CAT
 	}
 
 	lcdEvents := make(chan interface{}, 100)

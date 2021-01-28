@@ -20,6 +20,9 @@ import (
 var catSerial *serial.Port = nil
 
 func ProcessSerialFromCat(_catSerial *serial.Port) {
+	if _catSerial == nil {
+		return
+	}
 	catSerial = _catSerial
 	catReader := bufio.NewReader(catSerial)
 	for {
