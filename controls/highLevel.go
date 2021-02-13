@@ -137,9 +137,9 @@ var mostRecentHzStr = ""
 const uSdrFreqChars = 9 // including leading spaces and commas
 
 func SetFrequency(hzStr string) {
+	// TODO: If uSDX is not yet powered up, can't do this.
 	settledEvents = make(chan *ambEmuLcd.Settled, 100)
 	go func() {
-
 		// Setting frequency is idempotent.
 		if hzStr == mostRecentHzStr {
 			return
@@ -147,7 +147,7 @@ func SetFrequency(hzStr string) {
 		mostRecentHzStr = hzStr
 
 		hzStr = strings.TrimLeft(hzStr, "0")
-		daHzStr := hzStr[0 : len(hzStr)-1]
+		daHzStr := hzStr[0 : len(hzStr)-1] // deca-hertz string
 		daHzStr = fmt.Sprintf("%07s", daHzStr)
 		//fmt.Println(daHzStr)
 
@@ -156,9 +156,11 @@ func SetFrequency(hzStr string) {
 			iMod := ((i - 1) % uSdrFreqChars) + 1
 			currChar := line2[iMod]
 			if currChar != ',' {
-				currDigit := currChar - '0'
+				var currDigit byte
 				if currChar == ' ' { // The display shows leading zeros as spaces.
 					currDigit = 0
+				} else {
+					currDigit = currChar - '0'
 				}
 				targetDigit := daHzStr[digitPositionMap[iMod]] - '0'
 				dir := 1
@@ -172,10 +174,10 @@ func SetFrequency(hzStr string) {
 					RotateEncoder(dir)
 					<-settledEvents
 				}
-
 			}
 			ClickEncoderButton()
 			<-settledEvents
 		}
+		settledEvents = nil
 	}()
 }
