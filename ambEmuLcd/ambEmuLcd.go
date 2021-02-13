@@ -1,6 +1,5 @@
 package ambEmuLcd
 
-// #cgo CFLAGS: -I "$SRCDIR/display/"
 // #include "vrEmuLcd.h"
 import "C"
 
