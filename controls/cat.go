@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/tarm/serial"
 	"log"
+	"os"
 	"strings"
+	"uSDX/pty"
 )
 
 // Based, in part, on code from https://github.com/threeme3/QCX-SSB.
@@ -17,25 +19,57 @@ import (
 // Emulated radio is documented at:
 //    https://www.kenwood.com/i/products/info/amateur/ts_480/pdf/ts_480_pc.pdf
 
+var catFile *os.File = nil
 var catSerial *serial.Port = nil
 
-func ProcessSerialFromCat(_catSerial *serial.Port) {
-	if _catSerial == nil {
-		return
+func ProcessSerialCat(_catSerial *serial.Port) {
+	catConfig := &serial.Config{Name: "/dev/ttyS21", Baud: 9600}
+	_catSerial, catErr := serial.OpenPort(catConfig)
+	if catErr != nil {
+		log.Fatal(catErr) // Comment out if you're not going to do CAT
 	}
 	catSerial = _catSerial
+
 	catReader := bufio.NewReader(catSerial)
 	for {
 		data, err := catReader.ReadBytes(';')
 		if err != nil {
 			log.Fatal(err)
 		}
-		//log.Printf("-> %s", string(data))
+		processCatCommand(data)
+	}
+}
+
+func ProcessPtyCat() {
+	const catPttyLink = "ttyUSDX1"
+
+	_catFile, catTty, ptyErr := pty.Open()
+	if ptyErr != nil {
+		log.Fatal(ptyErr)
+	}
+	catFile = _catFile
+
+	homeDir, _ := os.UserHomeDir()
+	fq := homeDir + "/" + catPttyLink
+	_ = os.Remove(fq)
+	linkErr := os.Symlink(catTty, fq)
+	if linkErr != nil {
+		log.Fatal(linkErr)
+	}
+
+	catReader := bufio.NewReader(catFile)
+	for {
+		data, err := catReader.ReadBytes(';')
+		if err != nil {
+			log.Fatal(err)
+		}
 		processCatCommand(data)
 	}
 }
 
 func processCatCommand(catCmd []byte) {
+
+	log.Printf("CMD %s", string(catCmd))
 
 	noParams := catCmd[2] == ';'
 
@@ -119,8 +153,11 @@ func processCatCommand(catCmd []byte) {
 }
 
 func respond(response string) {
-	//log.Printf("<- %s", response)
-	_, _ = catSerial.Write([]byte(response))
+	log.Printf("RSP %s", response)
+	_, err := catFile.Write([]byte(response))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func readFrequencyA() {
