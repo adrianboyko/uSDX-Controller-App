@@ -137,7 +137,6 @@ var mostRecentHzStr = ""
 const uSdrFreqChars = 9 // including leading spaces and commas
 
 func SetFrequency(hzStr string) {
-	// TODO: If uSDX is not yet powered up, can't do this.
 	settledEvents = make(chan *ambEmuLcd.Settled, 100)
 	go func() {
 		// Setting frequency is idempotent.
@@ -178,6 +177,18 @@ func SetFrequency(hzStr string) {
 			ClickEncoderButton()
 			<-settledEvents
 		}
+		settledEvents = nil
+	}()
+}
+
+// ForceRefresh is used at app startup to force the uSDX to "redraw" the main/start "screen".
+func ForceRefresh() {
+	settledEvents = make(chan *ambEmuLcd.Settled, 100)
+	go func() {
+		ClickLeftButton()
+		<-settledEvents
+		ClickRightButton()
+		<-settledEvents
 		settledEvents = nil
 	}()
 }

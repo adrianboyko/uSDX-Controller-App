@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"github.com/tarm/serial"
 	"image"
+	"log"
 	"unsafe"
 )
 
-type PoweredOn struct{}
-type PoweredOff struct{}
+type PoweredOn struct{}  // TODO: Remove
+type PoweredOff struct{} // TODO: Remove
 
 type Updated struct{}
 
@@ -201,8 +202,13 @@ func ProcessSerialLcdData(uSdx *serial.Port, lcdEvents chan interface{}) {
 	buf := make([]byte, 128)
 	serialIsIdle := false
 
+	InitUsdxGlyphs(lcd)
+
 	for {
-		bytesRead, _ := uSdx.Read(buf)
+		bytesRead, err := uSdx.Read(buf)
+		if err != nil && err.Error() != "EOF" {
+			log.Fatal(err)
+		}
 		if bytesRead == 0 {
 			if !serialIsIdle {
 				serialIsIdle = true

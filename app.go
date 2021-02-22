@@ -11,7 +11,7 @@ import (
 	"uSDX/controls"
 )
 
-const uSdxSer = "/dev/serial/by-id/usb-Arduino_LLC_Arduino_Nano_Every_3A84CB33515146544E4B2020FF0C1B0E-if00"
+const uSdxDev = "/dev/serial/by-id/usb-Arduino_LLC_Arduino_Nano_Every_ACB4982851514746334C2020FF0E2053-if00"
 
 func main() {
 
@@ -19,12 +19,13 @@ func main() {
 
 	go gui(loop, lcdEvents)
 
-	uSdxConfig := &serial.Config{Name: uSdxSer, Baud: 500000, ReadTimeout: 50 * time.Millisecond}
+	uSdxConfig := &serial.Config{Name: uSdxDev, Baud: 500000, ReadTimeout: 50 * time.Millisecond}
 	uSdxPort, uSdxErr := serial.OpenPort(uSdxConfig)
 	if uSdxErr != nil {
 		log.Fatal(uSdxErr)
 	}
 	controls.InitLowLevelControls(uSdxPort)
+	controls.ForceRefresh()
 	go ambEmuLcd.ProcessSerialLcdData(uSdxPort, lcdEvents)
 
 	// TODO: Use ProcessPtyCat where Pty is available (e.g. Linux/Mac), else ProcessSerialCat (e.g. Windows)

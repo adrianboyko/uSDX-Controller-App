@@ -11,7 +11,6 @@ const (
 	rotateEncoderCounterclockwise = byte(5)
 	startPushToTalk               = byte(6)
 	endPushToTalk                 = byte(7)
-	resetTheUsdx                  = byte(8)
 )
 
 var controlNames = []string{
@@ -23,7 +22,6 @@ var controlNames = []string{
 	"Encoder Counter Turn",
 	"Start Push to Talk",
 	"End Push to Talk",
-	"Reset the uSDX",
 }
 
 var port *serial.Port
@@ -45,7 +43,6 @@ func EndPushToTalk()                 { hardwareAction(endPushToTalk) }
 func ClickLeftButton()               { hardwareAction(clickLeftButton) }
 func ClickRightButton()              { hardwareAction(clickRightButton) }
 func ClickEncoderButton()            { hardwareAction(clickEncoderButton) }
-func ResetTheUsdx()                  { hardwareAction(resetTheUsdx) }
 func RotateEncoderClockwise()        { hardwareAction(rotateEncoderClockwise) }
 func RotateEncoderCounterclockwise() { hardwareAction(rotateEncoderCounterclockwise) }
 func RotateEncoder(dir int) {
