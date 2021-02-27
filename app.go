@@ -25,6 +25,7 @@ func main() {
 		log.Fatal(uSdxErr)
 	}
 	controls.InitLowLevelControls(uSdxPort)
+	controls.InitHighLevelControls()
 	controls.ForceRefresh()
 	go ambEmuLcd.ProcessSerialLcdData(uSdxPort, lcdEvents)
 
@@ -45,10 +46,6 @@ func loop(w *app.Window, lcdEvents chan interface{}) error {
 			case *ambEmuLcd.Settled:
 				controls.HandleSettledEvent(e)
 			case ambEmuLcd.Updated:
-				// Nothing yet. Might not use.
-			case ambEmuLcd.PoweredOn:
-				controls.InitHighLevelControls()
-			case ambEmuLcd.PoweredOff:
 				// Nothing yet. Might not use.
 			}
 

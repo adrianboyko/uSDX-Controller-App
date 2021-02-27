@@ -11,9 +11,6 @@ import (
 	"unsafe"
 )
 
-type PoweredOn struct{}  // TODO: Remove
-type PoweredOff struct{} // TODO: Remove
-
 type Updated struct{}
 
 type Settled struct {
@@ -135,11 +132,11 @@ func interpretByteFromSerial(nibbleByte byte, lcdEvents chan interface{}) {
 
 func interpretFullByte(b byte, lcdEvents chan interface{}) {
 	if rs == 0 && b == 255 { // Power UP signal is not a valid LCD command.
-		lcdEvents <- PoweredOn{}
+		// lcdEvents <- PoweredOn{}
 	} else if rs == 0 && b == 254 { // Power DOWN signal is not a valid LCD command.
-		lcdEvents <- PoweredOff{}
-		C.vrEmuLcdSendCommand(lcd, 0b00000001) // Clear Display
-		C.vrEmuLcdSendCommand(lcd, 0b00001100) // Cursor Off
+		// lcdEvents <- PoweredOff{}
+		// C.vrEmuLcdSendCommand(lcd, 0b00000001) // Clear Display
+		// C.vrEmuLcdSendCommand(lcd, 0b00001100) // Cursor Off
 	} else {
 		sendFullByteToEmulator(b)
 		lcdEvents <- Updated{}
