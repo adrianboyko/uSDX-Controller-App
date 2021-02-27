@@ -183,10 +183,12 @@ func SetFrequency(hzStr string) {
 
 // ForceRefresh is used at app startup to force the uSDX to "redraw" the main/start "screen".
 func ForceRefresh() {
+	time.Sleep(500 * time.Millisecond)
 	settledEvents = make(chan *ambEmuLcd.Settled, 100)
 	go func() {
 		ClickLeftButton()
 		<-settledEvents
+		time.Sleep(500 * time.Millisecond)
 		ClickRightButton()
 		<-settledEvents
 		settledEvents = nil
